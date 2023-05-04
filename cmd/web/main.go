@@ -6,13 +6,13 @@ import (
 	"net/http"
 )
 
-const portNumber = ":8080" // 全局变量
+const portNumber = ":8000"
 
+// main is the main function
 func main() {
-
 	http.HandleFunc("/", handlers.Home)
 	http.HandleFunc("/about", handlers.About)
 
-	fmt.Println("starting a server")
-	_ = http.ListenAndServe(portNumber, nil) // 启动监听端口
+	fmt.Println(fmt.Sprintf("Staring application on port %s", portNumber))
+	_ = http.ListenAndServe(portNumber, nil)
 }
