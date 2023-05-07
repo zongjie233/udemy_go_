@@ -1,24 +1,91 @@
 package render
 
 import (
-	"fmt"
+	"bytes"
+	"github.com/zongjie233/udemy_lesson/models"
+	"github.com/zongjie233/udemy_lesson/pkg/config"
 	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 )
 
-// RenderTemplate  渲染模板函数
-func RenderTemplateTEst(w http.ResponseWriter, tmpl string) {
-	//parsedTemplate, _ := template.ParseFiles("D:\\udemy_lessons\\templates"+"\\"+tmpl, "D:\\udemy_lessons\\templates\\base.layout.tmpl") // 如果使用layout，则后边加上layout的文件位置
-	//parsedTemplate, e := template.ParseFiles("D:\\udemy_lessons\\templates" + "\\" + tmpl) // 使用绝对路径能够保证不出错
-	parsedTemplate, _ := template.ParseFiles("./templates/"+tmpl, "./templates/base.layout.tmpl") // 相对路径弊端：相对于当前启动程序的目录。
-	err := parsedTemplate.Execute(w, nil)
-	if err != nil {
-		fmt.Println("error parsing template:", err)
-		return
-	}
+var functions = template.FuncMap{}
+
+var app *config.AppConfig
+
+// NewTemplates 为模板设定配置
+func NewTemplates(a *config.AppConfig) {
+	app = a
 }
 
+// AddDefaultData 添加数据函数
+func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+
+	return td
+}
+
+// RenderTemplate  渲染模板函数
+func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
+	var tc map[string]*template.Template
+
+	if app.UseCache {
+		tc = app.TemplateCache
+	} else {
+		tc, _ = CreateTemplateCache()
+	}
+	// 从缓存中取得模板
+	t, ok := tc[tmpl]
+	if !ok {
+		log.Fatal("不能从缓存中拿到模板")
+	}
+
+	td = AddDefaultData(td)
+	buf := new(bytes.Buffer) // bytes.buffer实现字节缓冲区
+	_ = t.Execute(buf, td)   // 将数据写入
+
+	// 渲染模板
+	_, err := buf.WriteTo(w)
+	if err != nil {
+		log.Println(err)
+	}
+
+}
+
+// CreateTemplateCache 创建模板缓存
+func CreateTemplateCache() (map[string]*template.Template, error) {
+	myCache := make(map[string]*template.Template)
+
+	// 获取templates中所有*.page.tmpl文件
+	pages, err := filepath.Glob("./templates/*.page.tmpl") // filepath.Glob()用于返回与指定模式匹配的所有文件或目录的名称，以切片模式返回
+	if err != nil {
+		return myCache, err
+	}
+
+	// 遍历所有page.tmpl文件
+	for _, page := range pages {
+		name := filepath.Base(page)                    // 返回路径中的最后一个元素,即文件名
+		ts, err := template.New(name).ParseFiles(page) // 创建一个模板对象
+		if err != nil {
+			return myCache, err
+		}
+		matches, err := filepath.Glob("./templates/*.layout.tmpl")
+		if err != nil {
+			return myCache, err
+		}
+
+		if len(matches) > 0 {
+			ts, err = ts.ParseGlob("./templates/*.layout.tmpl")
+			if err != nil {
+				return myCache, err
+			}
+		}
+		myCache[name] = ts
+	}
+	return myCache, nil
+}
+
+/* 第一种方法
 var tc = make(map[string]*template.Template)
 
 // 缓存机制
@@ -65,3 +132,5 @@ func createTemplateCache(t string) error {
 
 	return nil
 }
+
+*/
