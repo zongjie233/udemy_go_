@@ -5,21 +5,22 @@ import (
 	"net/http"
 )
 
-//func WriteToConsole(next http.Handler) http.Handler { // 中间件都会返回http.Handler
-//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//		fmt.Println("hit the page")
-//		next.ServeHTTP(w, r)
-//	})
-//}
-
+// NoSurf adds CSRF to all POST requests
 func NoSurf(next http.Handler) http.Handler {
 	csrfHandler := nosurf.New(next)
 
 	csrfHandler.SetBaseCookie(http.Cookie{
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   false,
+		Secure:   app.InProduction,
 		SameSite: http.SameSiteLaxMode,
 	})
 	return csrfHandler
+}
+
+// SessionLoad 加载保存每次请求的会话
+func SessionLoad(next http.Handler) http.Handler {
+
+	//LoadAndSave提供了中间件，自动加载和保存当前请求的会话数据，并将会话令牌以cookie的形式与客户进行交流。在一个cookie中与客户端进行沟通。
+	return session.LoadAndSave(next)
 }

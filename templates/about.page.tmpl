@@ -8,6 +8,15 @@
                 <p>this is a p of text</p>
                 <p>this is a p of text</p>
             <p>this came from temp:{{index .StringMap "test"}}</p>
+
+                <p>
+{{/*                    ne表示not equal*/}}
+                    {{if ne (index .StringMap "remote_ip") ""}}
+                        your remote IP address is {{index .StringMap "remote_ip"}}
+                    {{else}}
+                        i don't know your ip address yet. Visit the <a href="/">Home page</a>
+                    {{end}}
+                </p>
             </div>
         </div>
     </div>
