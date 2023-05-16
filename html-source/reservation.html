@@ -19,8 +19,8 @@
             color: #fff;
             font-size: 80%;
         }
-        .redText{
-            color: red;
+        .swal2-html-container{
+            z-index: 10000 !important;
         }
     </style>
     <title>My nice page</title>
@@ -125,50 +125,178 @@
     <script src="https://unpkg.com/notie"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-(() => {
-    'use strict'
+    let attention = Prompt();
 
-    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-    const forms = document.querySelectorAll('.needs-validation')
+    (() => {
+        'use strict'
 
-    // Loop over them and prevent submission
-    Array.from(forms).forEach(form => {
-        form.addEventListener('submit', event => {
-            if (!form.checkValidity()) {
-                event.preventDefault()
-                event.stopPropagation()
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        const forms = document.querySelectorAll('.needs-validation')
+
+        // Loop over them and prevent submission
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+
+
+    const elem = document.getElementById('reservation-dates');
+    const rangepicker = new DateRangePicker(elem, {
+        format:"yyyy-mm-dd"
+    });
+
+    document.getElementById("colorButton").addEventListener("click",function (){
+        let html=`
+        <form id="check-availability-form" action="" method="post" novalidate class="needs-validation">
+            <div class="row">
+                <div class="col">
+                    <div class="row" id="reservation-dates-modal">
+                        <div class="col">
+                            <input disabled required class="form-control" type="text" name="start" id="start" placeholder="Arrival">
+                        </div>
+                        <div class="col">
+                            <input disabled required class="form-control" type="text" name="end" id="end" placeholder="Departure">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        `
+
+      attention.custom({msg: html,title:"choose "});
+    })
+
+    function notify(msg,msgType) {
+        notie.alert({
+            type: msgType, // optional, default = 4, enum: [1, 2, 3, 4, 5, 'success', 'warning', 'error', 'info', 'neutral']
+            text: msg,
+        })
+    }
+
+    function notifyModal(title,text,icon,confirmationButtonText){
+        Swal.fire({
+            title: title,
+            html: text,
+            icon:icon,
+            confirmButtonText: confirmationButtonText
+        })
+    }
+
+    // 弹窗小工具
+    function Prompt() {
+
+        let toast = function (c) {
+            const {
+                msg = "",
+                icon = "success",
+                position = "top-end",
+            } = c;
+
+            const Toast = Swal.mixin({
+                toast: true,
+                title: msg,
+                position: position,
+                icon: icon,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
+
+            Toast.fire({})
+        }
+
+        let success = function (d) {
+            const {
+                msg = "",
+                title = "",
+                footer = "",
+            } = d;
+
+            Swal.fire({
+                icon: 'success',
+                title: title,
+                text: msg,
+                footer: footer,
+            })
+        }
+
+        let error = function (c) {
+            const {
+                msg = "",
+                title = "",
+                footer = "",
+            } = c;
+
+            Swal.fire({
+                icon: 'error',
+                title: title,
+                text: msg,
+                footer: footer,
+            })
+        }
+
+        // 实现弹出窗口选择日期，并记录表单
+        async function custom(c) {
+            const {
+                msg = "",
+                title = "",
+            } = c;
+
+            const {value: formValues} = await Swal.fire({
+                title: title,
+                html: msg,
+                backdrop:false,
+                focusConfirm: false,
+                showCancelButton:true,
+                // 增加日历选择器，在打开前会进行以下程序加载日历控件
+                willOpen:() => {
+                    const elem = document.getElementById('reservation-dates-modal');
+                    const rp = new DateRangePicker(elem, {
+                        format:"yyyy-mm-dd",
+                        showOnFocus:true,
+                    });
+                },
+                preConfirm: () => {
+                    return [
+                        document.getElementById('start').value,
+                        document.getElementById('end').value
+                    ]
+                },
+                // 打开之后，通过移除disabled属性实现第一时间不打开日历，当用户点击时打开
+                didOpen:() => {
+                    document.getElementById('start').removeAttribute('disabled');
+                    document.getElementById('end').removeAttribute('disabled');
+                }
+            })
+
+            if (formValues) {
+                Swal.fire(JSON.stringify(formValues))
+            }
+        }
+
+            return {
+                toast: toast,
+                success: success,
+                error: error,
+                custom: custom,
             }
 
-            form.classList.add('was-validated')
-        }, false)
-    })
-})()
+    }
 
 
-const elem = document.getElementById('reservation-dates');
-const rangepicker = new DateRangePicker(elem, {
-    format:"yyyy-mm-dd"
-});
 
-document.getElementById("colorButton").addEventListener("click",function (){
-  notifyModal("title","<em>helloworld</em>","success","My text for the button")
-})
-
-function notify(msg,msgType) {
-    notie.alert({
-        type: msgType, // optional, default = 4, enum: [1, 2, 3, 4, 5, 'success', 'warning', 'error', 'info', 'neutral']
-        text: msg,
-    })
-}
-
-function notifyModal(title,text,icon,confirmationButtonText){
-    Swal.fire({
-        title: title,
-        html: text,
-        icon:icon,
-        confirmButtonText: confirmationButtonText
-    })
-}
 
 </script>
 
