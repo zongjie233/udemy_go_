@@ -1,0 +1,65 @@
+{{template "base" .}}
+
+{{define "content"}}
+
+    <div class="container">
+        <div class="row">
+            <img src="/static/images/bigbed.png" class="img-fluid img-thumbnail mx-auto d-block room-image" alt="bigbed">
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <h1 class="text-center mt-4">豪华大床房</h1>
+                <p>欢迎来到我们的酒店，我们提供舒适的大床房，为您的住宿体验带来更多的享受。
+
+                    我们的大床房设计宽敞舒适，床铺柔软舒适，床单被套精心挑选，让您在疲惫的旅途后得到充分的休息和放松。
+
+                    房间内设有所有必需品，包括高速无线网络、平面电视、空调、迷你冰箱、保险箱、热水壶等等。
+
+                    我们的酒店大床房不仅舒适，还提供了一流的服务。客房服务员会每天提供清洁服务，以确保您的房间始终保持整洁干净。此外，我们的前台工作人员随时准备为您提供帮助和服务，确保您的住宿愉快无忧。
+
+                    我们的酒店位于市中心，交通便利，附近有许多餐厅、商店、景点和娱乐设施。无论您是商务旅行还是休闲旅行，我们的酒店都是您的理想选择。
+
+                    预定我们的大床房，您将获得舒适和放松的住宿体验。我们期待您的光临！
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col text-center">
+
+                <a id="check-availability-button" href="#!" class="btn btn-success">查看是否有空房</a>
+            </div>
+
+        </div>
+
+    </div>
+
+{{end}}
+
+{{define "js"}}
+    <script>
+        document.getElementById("check-availability-button").addEventListener("click",
+            function () {
+                let html = `
+    <form id="check-availability-form" action="" method="post" novalidate class="needs-validation">
+        <div class="row">
+            <div class="col">
+                <div class="row" id="reservation-dates-modal">
+                    <div class="col">
+                        <input disabled required class="form-control" type="text" name="start" id="start" placeholder="Arrival">
+                    </div>
+                    <div class="col">
+                        <input disabled required class="form-control" type="text" name="end" id="end" placeholder="Departure">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+`
+                attention.custom({msg: html,title:"choose "});
+            })
+
+
+    </script>
+
+{{end}}

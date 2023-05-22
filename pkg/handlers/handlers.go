@@ -49,3 +49,28 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) { // 必须�
 		StringMap: stringMap,
 	})
 }
+
+// Reservation 渲染预定页面，展示表单
+func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "make-reservation.page.tmpl", &models.TemplateData{})
+}
+
+// Bigbed 渲染大床房页面，展示表单
+func (m *Repository) Bigbed(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "bigbed.page.tmpl", &models.TemplateData{})
+}
+
+// Basic 渲染标准间页面，展示表单
+func (m *Repository) Basic(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "basicroom.page.tmpl", &models.TemplateData{})
+}
+
+// Availablility 渲染查找页面，展示表单
+func (m *Repository) Availablility(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "search-availability.page.tmpl", &models.TemplateData{})
+}
+
+// Contact 渲染查找页面，展示表单
+func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "contact.page.tmpl", &models.TemplateData{})
+}
