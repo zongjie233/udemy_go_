@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"github.com/justinas/nosurf"
 	"github.com/zongjie233/udemy_lesson/models"
 	"github.com/zongjie233/udemy_lesson/pkg/config"
 	"html/template"
@@ -20,13 +21,13 @@ func NewTemplates(a *config.AppConfig) {
 }
 
 // AddDefaultData 添加数据函数
-func AddDefaultData(td *models.TemplateData) *models.TemplateData {
-
+func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
+	td.CSRFToken = nosurf.Token(r)
 	return td
 }
 
 // RenderTemplate  渲染模板函数
-func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
+func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) {
 	var tc map[string]*template.Template
 
 	if app.UseCache {
@@ -40,7 +41,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData)
 		log.Fatal("不能从缓存中拿到模板")
 	}
 
-	td = AddDefaultData(td)
+	td = AddDefaultData(td, r)
 	buf := new(bytes.Buffer) // bytes.buffer实现字节缓冲区
 	_ = t.Execute(buf, td)   // 将数据写入
 
