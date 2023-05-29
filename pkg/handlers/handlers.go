@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/zongjie233/udemy_lesson/models"
 	"github.com/zongjie233/udemy_lesson/pkg/config"
 	"github.com/zongjie233/udemy_lesson/pkg/render"
+	"log"
 	"net/http"
 )
 
@@ -66,17 +68,33 @@ func (m *Repository) Basic(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, r, "basicroom.page.tmpl", &models.TemplateData{})
 }
 
-// Availablility 渲染查找页面，展示表单
-func (m *Repository) Availablility(w http.ResponseWriter, r *http.Request) {
+// Availability 渲染查找页面，展示表单
+func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, r, "search-availability.page.tmpl", &models.TemplateData{})
 }
 
-// PostAvailablility 渲染查找页面，展示表单
-func (m *Repository) PostAvailablility(w http.ResponseWriter, r *http.Request) {
+// PostAvailability 渲染查找页面，展示表单
+func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	// 获取表单上的数据
 	start := r.Form.Get("start")
 	end := r.Form.Get("end")
 	w.Write([]byte(fmt.Sprintf("开始日期是%s,结束日期是%s", start, end)))
+}
+
+type jsonResponse struct {
+	OK      bool   `json:"ok"`
+	Message string `json:"message"`
+}
+
+// AvailabilityJson 处理查询请求并发送JSON响应
+func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
+	resp := jsonResponse{OK: true, Message: "Availability"}
+	out, err := json.MarshalIndent(resp, "", "    ")
+	if err != nil {
+		log.Println(err)
+	}
+	w.Header().Set("Content-Type", "application/json") // 使客户端能够正确判断和解析服务器返回的数据格式
+	w.Write(out)
 }
 
 // Contact 渲染查找页面，展示表单
