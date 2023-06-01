@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/alexedwards/scs/v2"
-	"github.com/zongjie233/udemy_lesson/pkg/config"
-	"github.com/zongjie233/udemy_lesson/pkg/handlers"
-	"github.com/zongjie233/udemy_lesson/pkg/render"
+	"github.com/zongjie233/udemy_lesson/internal/config"
+	"github.com/zongjie233/udemy_lesson/internal/handlers"
+	"github.com/zongjie233/udemy_lesson/internal/render"
 	"log"
 	"net/http"
 	"time"

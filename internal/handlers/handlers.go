@@ -3,9 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zongjie233/udemy_lesson/models"
-	"github.com/zongjie233/udemy_lesson/pkg/config"
-	"github.com/zongjie233/udemy_lesson/pkg/render"
+	"github.com/zongjie233/udemy_lesson/internal/config"
+	"github.com/zongjie233/udemy_lesson/internal/models"
+	"github.com/zongjie233/udemy_lesson/internal/render"
 	"log"
 	"net/http"
 )

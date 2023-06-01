@@ -3,8 +3,8 @@ package render
 import (
 	"bytes"
 	"github.com/justinas/nosurf"
-	"github.com/zongjie233/udemy_lesson/models"
-	"github.com/zongjie233/udemy_lesson/pkg/config"
+	"github.com/zongjie233/udemy_lesson/internal/config"
+	"github.com/zongjie233/udemy_lesson/internal/models"
 	"html/template"
 	"log"
 	"net/http"
