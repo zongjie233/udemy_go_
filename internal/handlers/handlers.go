@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zongjie233/udemy_lesson/internal/config"
+	"github.com/zongjie233/udemy_lesson/internal/forms"
 	"github.com/zongjie233/udemy_lesson/internal/models"
 	"github.com/zongjie233/udemy_lesson/internal/render"
 	"log"
@@ -55,7 +56,36 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) { // 必须�
 
 // Reservation 渲染预定页面，展示表单
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{})
+	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: forms.New(nil)})
+}
+
+// PostReservation 处理预定表单的post请求
+func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	//从请求表单中获取预订信息,保存到reservation结构体
+	reservation := models.Reservation{
+		FirstName: r.Form.Get("first_name"),
+		LastName:  r.Form.Get("last_name"),
+		Email:     r.Form.Get("email"),
+		Phone:     r.Form.Get("phone"),
+	}
+
+	//- 使用forms包解析请求表单
+	form := forms.New(r.PostForm)
+	//- 调用Has方法校验first_name字段是否存在
+	form.Has("first_name", r)
+	//如果form校验未通过,则渲染make-reservation模板并返回
+	if !form.Valid() {
+		data := make(map[string]interface{})
+		data["reservation"] = reservation
+		render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: form, Data: data})
+		return
+	}
 }
 
 // Bigbed 渲染大床房页面，展示表单
