@@ -56,7 +56,10 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) { // 必须�
 
 // Reservation 渲染预定页面，展示表单
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: forms.New(nil)})
+	var emptyReservation models.Reservation
+	data := make(map[string]interface{})
+	data["reservation"] = emptyReservation
+	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: forms.New(nil), Data: data})
 }
 
 // PostReservation 处理预定表单的post请求
@@ -78,8 +81,10 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	//- 使用forms包解析请求表单
 	form := forms.New(r.PostForm)
 	//- 调用Has方法校验first_name字段是否存在
-	form.Has("first_name", r)
 	//如果form校验未通过,则渲染make-reservation模板并返回
+	form.Required("first_name", "last_name", "email")
+	form.MinLength("first_name", 3, r)
+
 	if !form.Valid() {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
