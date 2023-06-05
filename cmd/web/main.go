@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/alexedwards/scs/v2"
 	"github.com/zongjie233/udemy_lesson/internal/config"
 	"github.com/zongjie233/udemy_lesson/internal/handlers"
+	"github.com/zongjie233/udemy_lesson/internal/models"
 	"github.com/zongjie233/udemy_lesson/internal/render"
 	"log"
 	"net/http"
@@ -19,8 +21,9 @@ var session *scs.SessionManager // 便于管理session
 // main is the main function
 func main() {
 
-	// 在生产模式时请设置为true
-	app.InProduction = false
+	gob.Register(models.Reservation{}) // 将数据类型“models.Reservation”注册到gob包中，允许以二进制格式进行编码和解码。
+
+	app.InProduction = false // 在生产模式时请设置为true
 
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour

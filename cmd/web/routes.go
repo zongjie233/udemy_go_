@@ -24,11 +24,11 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Get("/basicroom", handlers.Repo.Basic)
 	mux.Get("/search-availability", handlers.Repo.Availability)
 	mux.Post("/search-availability", handlers.Repo.PostAvailability)
-	mux.Post("/search-availability-json", handlers.Repo.AvailabilityJSON)
 
 	mux.Get("/contact", handlers.Repo.Contact)
 	mux.Get("/make-reservation", handlers.Repo.Reservation)
 	mux.Post("/make-reservation", handlers.Repo.PostReservation)
+	mux.Get("/reservation-summary", handlers.Repo.ReservationSummary)
 
 	filesServer := http.FileServer(http.Dir("./static/"))             // 建一个文件服务器，用于提供静态文件服务
 	mux.Handle("/static/*", http.StripPrefix("/static", filesServer)) // 注册路由规则，将/static开头的请求映射到 filesServer上
