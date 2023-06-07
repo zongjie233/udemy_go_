@@ -17,39 +17,41 @@ import (
 	"time"
 )
 
-var app config.AppConfig
-var session *scs.SessionManager
-var pathToTemplates = "./templates" // 便于测试用例找到模板位置
 var functions = template.FuncMap{}
 
+var app config.AppConfig
+var session *scs.SessionManager
+var pathToTemplates = "./../../templates"
+
 func getRoutes() http.Handler {
-	gob.Register(models.Reservation{}) // 将数据类型“models.Reservation”注册到gob包中，允许以二进制格式进行编码和解码。
+	gob.Register(models.Reservation{}) // 注册 models.Reservation 类型，使其能够序列化为 gob 格式
 
 	app.InProduction = false // 在生产模式时请设置为true
 
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
-	session.Cookie.Persist = true // 关闭浏览器之后继续保留
-	session.Cookie.SameSite = http.SameSiteLaxMode
-	session.Cookie.Secure = app.InProduction
+	session.Cookie.Persist = true                  // 让浏览器关闭后继续保留session
+	session.Cookie.SameSite = http.SameSiteLaxMode // 要求 cookie 只能被同一站点请求访问
+	session.Cookie.Secure = app.InProduction       // 表示 cookie 只有通过 HTTPS 才能发送，如果应用程序在生产模式下，则应启用此选项
 
-	app.Session = session
-	tc, err := render.CreateTemplateCache()
+	app.Session = session // 存储当前会话
+
+	tc, err := CreateTestTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create template cache")
 
 	}
 	app.TemplateCache = tc
-	app.UseCache = false
+	app.UseCache = true
 
 	repo := NewRepo(&app)
 	NewHandlers(repo)
-
 	render.NewTemplates(&app)
 
 	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)
-	mux.Use(NoSurf)
+	mux.Use(NoSurf)      // 给所有 POST 请求添加 CSRF 保护
+	mux.Use(SessionLoad) // 加载保存会话的函数
 
 	mux.Get("/", Repo.Home)
 	mux.Get("/about", Repo.About)
@@ -81,8 +83,15 @@ func NoSurf(next http.Handler) http.Handler {
 	return csrfHandler
 }
 
-// CreateTemplateCache 创建模板缓存
-func CreateTemplateCache() (map[string]*template.Template, error) {
+// SessionLoad 加载保存每次请求的会话
+func SessionLoad(next http.Handler) http.Handler {
+
+	//LoadAndSave提供了中间件，自动加载和保存当前请求的会话数据，并将会话令牌以cookie的形式与客户进行交流。在一个cookie中与客户端进行沟通。
+	return session.LoadAndSave(next)
+}
+
+// CreateTestTemplateCache 创建模板缓存
+func CreateTestTemplateCache() (map[string]*template.Template, error) {
 	myCache := make(map[string]*template.Template)
 
 	// 获取templates中所有*.page.tmpl文件

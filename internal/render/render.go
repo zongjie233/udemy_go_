@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/justinas/nosurf"
 	"github.com/zongjie233/udemy_lesson/internal/config"
 	"github.com/zongjie233/udemy_lesson/internal/models"
@@ -12,6 +13,7 @@ import (
 )
 
 var functions = template.FuncMap{}
+var pathToTemplates = "./templates" // 便于测试用例找到模板位置
 
 var app *config.AppConfig
 
@@ -60,31 +62,31 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mod
 func CreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := make(map[string]*template.Template)
 
-	// 获取templates中所有*.page.tmpl文件
-	pages, err := filepath.Glob("./templates/*.page.tmpl") // filepath.Glob()用于返回与指定模式匹配的所有文件或目录的名称，以切片模式返回
+	// 获取所有 .page.tmpl 文件
+	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.tmpl", pathToTemplates)) // filepath.Glob()用于返回与指定模式匹配的所有文件或目录的名称，以切片模式返回
 	if err != nil {
 		return myCache, err
 	}
 
-	// 遍历所有page.tmpl文件
+	// 遍历所有 page.tmpl 文件并创建一个模板对象
 	for _, page := range pages {
 		name := filepath.Base(page)                    // 返回路径中的最后一个元素,即文件名
-		ts, err := template.New(name).ParseFiles(page) // 创建一个模板对象
+		ts, err := template.New(name).ParseFiles(page) // 创建一个新模板对象
 		if err != nil {
 			return myCache, err
 		}
-		matches, err := filepath.Glob("./templates/*.layout.tmpl")
+		matches, err := filepath.Glob(fmt.Sprintf("%s/*.page.tmpl", pathToTemplates))
 		if err != nil {
 			return myCache, err
 		}
 
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob("./templates/*.layout.tmpl")
+			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.page.tmpl", pathToTemplates))
 			if err != nil {
 				return myCache, err
 			}
 		}
-		myCache[name] = ts
+		myCache[name] = ts // 将模板对象存储到模板缓存中
 	}
 	return myCache, nil
 }
