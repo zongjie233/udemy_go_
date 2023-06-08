@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,20 @@ var theTests = []struct {
 	{"search", "/search-availability", "GET", []postData{}, http.StatusOK},
 	{"contact", "/contact", "GET", []postData{}, http.StatusOK},
 	{"make", "/make-reservation", "GET", []postData{}, http.StatusOK},
+	{"post-avl", "/search-availability", "POST", []postData{
+		{key: "start", value: "2020-01-01"},
+		{key: "end", value: "2020-02-01"},
+	}, http.StatusOK},
+	{"post-search-avl-json", "/search-availability-json", "POST", []postData{
+		{key: "start", value: "2020-01-01"},
+		{key: "end", value: "2020-02-01"},
+	}, http.StatusOK},
+	{"make-reservation", "/make-reservation", "POST", []postData{
+		{key: "first_name", value: "2020-01-01"},
+		{key: "last_name", value: "2020-02-01"},
+		{key: "email", value: "hs@hs.com"},
+		{key: "phone", value: "123456"},
+	}, http.StatusOK},
 }
 
 func TestHandlers(t *testing.T) {
@@ -45,7 +60,19 @@ func TestHandlers(t *testing.T) {
 			}
 
 		} else {
+			values := url.Values{} //url.Values 被用于创建 POST 请求的表单数据
+			for _, x := range e.params {
+				values.Add(x.key, x.value)
+			}
+			resp, err := ts.Client().PostForm(ts.URL+e.url, values) //PostForm() 函数会自动将表单数据进行编码，并将其作为消息体发送到目标 URL 地址
+			if err != nil {
+				t.Log(err)
+				t.Fatal(err)
 
+			}
+			if resp.StatusCode != e.expectedStatusCode {
+				t.Errorf("for %s, expected %d, but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
+			}
 		}
 	}
 }

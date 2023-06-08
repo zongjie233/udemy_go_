@@ -126,7 +126,7 @@ type jsonResponse struct {
 	Message string `json:"message"`
 }
 
-// AvailabilityJson 处理查询请求并发送JSON响应
+// AvailabilityJSON 处理查询请求并发送JSON响应
 func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 	resp := jsonResponse{OK: true, Message: "Availability"}
 	out, err := json.MarshalIndent(resp, "", "    ")

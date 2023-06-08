@@ -50,7 +50,7 @@ func getRoutes() http.Handler {
 
 	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)
-	mux.Use(NoSurf)      // 给所有 POST 请求添加 CSRF 保护
+	//mux.Use(NoSurf)      // 给所有 POST 请求添加 CSRF 保护
 	mux.Use(SessionLoad) // 加载保存会话的函数
 
 	mux.Get("/", Repo.Home)
@@ -59,6 +59,7 @@ func getRoutes() http.Handler {
 	mux.Get("/basicroom", Repo.Basic)
 	mux.Get("/search-availability", Repo.Availability)
 	mux.Post("/search-availability", Repo.PostAvailability)
+	mux.Post("/search-availability-json", Repo.AvailabilityJSON)
 
 	mux.Get("/contact", Repo.Contact)
 	mux.Get("/make-reservation", Repo.Reservation)
