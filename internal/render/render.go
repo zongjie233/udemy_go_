@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/justinas/nosurf"
 	"github.com/zongjie233/udemy_lesson/internal/config"
@@ -32,7 +33,7 @@ func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 }
 
 // RenderTemplate  渲染模板函数
-func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) {
+func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) error {
 	var tc map[string]*template.Template
 
 	if app.UseCache {
@@ -43,7 +44,8 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mod
 	// 从缓存中取得模板
 	t, ok := tc[tmpl]
 	if !ok {
-		log.Fatal("不能从缓存中拿到模板")
+
+		return errors.New("不能从缓存中拿到模板")
 	}
 
 	td = AddDefaultData(td, r)
@@ -54,8 +56,9 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mod
 	_, err := buf.WriteTo(w)
 	if err != nil {
 		log.Println(err)
+		return err
 	}
-
+	return nil
 }
 
 // CreateTemplateCache 创建模板缓存
