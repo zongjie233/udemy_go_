@@ -10,7 +10,8 @@ import (
 type AppConfig struct {
 	UseCache      bool
 	TemplateCache map[string]*template.Template
-	InfoLog       *log.Logger         // 日志指针
+	InfoLog       *log.Logger // 日志指针
+	ErrorLog      *log.Logger
 	InProduction  bool                // 是否为生产模式
 	Session       *scs.SessionManager // 方便handlers函数访问
 }

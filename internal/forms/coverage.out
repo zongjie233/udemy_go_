@@ -1,0 +1,18 @@
+mode: set
+github.com/zongjie233/udemy_lesson/internal/forms/errors.go:6.44,8.2 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/errors.go:11.42,13.18 2 1
+github.com/zongjie233/udemy_lesson/internal/forms/errors.go:16.2,16.14 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/errors.go:13.18,15.3 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:17.29,19.2 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:22.33,27.2 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:30.43,31.31 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:31.31,33.37 2 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:33.37,35.4 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:40.39,42.13 2 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:46.2,46.13 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:42.13,45.3 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:50.57,52.21 2 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:56.2,56.13 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:52.21,55.3 2 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:59.38,60.40 1 1
+github.com/zongjie233/udemy_lesson/internal/forms/forms.go:60.40,62.3 1 1
