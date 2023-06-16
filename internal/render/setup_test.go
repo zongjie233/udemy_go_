@@ -5,6 +5,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/zongjie233/udemy_lesson/internal/config"
 	"github.com/zongjie233/udemy_lesson/internal/models"
+	"log"
 	"net/http"
 	"os"
 	"testing"
@@ -18,7 +19,10 @@ func TestMain(m *testing.M) {
 	gob.Register(models.Reservation{}) // 将数据类型“models.Reservation”注册到gob包中，允许以二进制格式进行编码和解码。
 
 	testApp.InProduction = false // 在生产模式时请设置为true
-
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	testApp.InfoLog = infoLog
+	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	testApp.ErrorLog = errorLog
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
 	session.Cookie.Persist = true // 关闭浏览器之后继续保留

@@ -136,7 +136,7 @@ func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation) // 从应用程序的会话中获取名为“reservation”的变量。如果变量存在，将尝试将其转换为类型“models.Reservation”
 	if !ok {
-		log.Println("cannot get item from session")
+		m.App.ErrorLog.Println("cannot get item from session")
 		m.App.Session.Put(r.Context(), "error", "Can't get reservation from session")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return

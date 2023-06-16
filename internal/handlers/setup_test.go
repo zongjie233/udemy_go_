@@ -13,6 +13,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -35,6 +36,11 @@ func getRoutes() http.Handler {
 	session.Cookie.Secure = app.InProduction       // 表示 cookie 只有通过 HTTPS 才能发送，如果应用程序在生产模式下，则应启用此选项
 
 	app.Session = session // 存储当前会话
+
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	app.InfoLog = infoLog
+	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	app.ErrorLog = errorLog
 
 	tc, err := CreateTestTemplateCache()
 	if err != nil {
