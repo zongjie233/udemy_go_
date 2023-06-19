@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/alexedwards/scs/v2"
 	"github.com/zongjie233/udemy_lesson/internal/config"
+	"github.com/zongjie233/udemy_lesson/internal/driver"
 	"github.com/zongjie233/udemy_lesson/internal/handlers"
 	"github.com/zongjie233/udemy_lesson/internal/helpers"
 	"github.com/zongjie233/udemy_lesson/internal/models"
@@ -24,10 +25,11 @@ var errorLog *log.Logger
 
 // main is the main function
 func main() {
-	err := run()
+	db, err := run()
 	if err != nil {
 		log.Fatal(err) // Fatal 会停止应用
 	}
+	defer db.SQL.Close()
 
 	fmt.Println(fmt.Sprintf("Staring application on port %s", portNumber))
 
@@ -39,7 +41,7 @@ func main() {
 	err = srv.ListenAndServe()
 	log.Fatal(err)
 }
-func run() error {
+func run() (*driver.DB, error) {
 	gob.Register(models.Reservation{}) // 将数据类型“models.Reservation”注册到gob包中，允许以二进制格式进行编码和解码。
 
 	app.InProduction = false // 在生产模式时请设置为true
@@ -56,18 +58,27 @@ func run() error {
 	session.Cookie.SameSite = http.SameSiteLaxMode
 	session.Cookie.Secure = app.InProduction
 
+	// 链接到数据库
+	log.Println("连接数据库中...")
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=postgres password=990321")
+	if err != nil {
+		log.Fatal("连接不到数据库")
+	}
+
+	log.Println("成功连接数据库！")
+
 	app.Session = session
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create template cache")
-		return err
+		return nil, err
 	}
 	app.TemplateCache = tc
 	app.UseCache = true
 
-	repo := handlers.NewRepo(&app)
+	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
 	render.NewTemplates(&app)
 	helpers.NewHelpers(&app)
-	return nil
+	return db, nil
 }

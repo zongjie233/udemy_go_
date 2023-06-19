@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zongjie233/udemy_lesson/internal/config"
+	"github.com/zongjie233/udemy_lesson/internal/driver"
 	"github.com/zongjie233/udemy_lesson/internal/forms"
 	"github.com/zongjie233/udemy_lesson/internal/helpers"
 	"github.com/zongjie233/udemy_lesson/internal/models"
 	"github.com/zongjie233/udemy_lesson/internal/render"
+	"github.com/zongjie233/udemy_lesson/internal/repository"
+	"github.com/zongjie233/udemy_lesson/internal/repository/dbrepo"
 	"log"
 	"net/http"
 )
@@ -18,12 +21,14 @@ var Repo *Repository
 // Repository 是一个库的类型
 type Repository struct {
 	App *config.AppConfig
+	DB  repository.DatabaseRepo
 }
 
 // NewRepo 创建一个新库
-func NewRepo(a *config.AppConfig) *Repository {
+func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
+		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
 	}
 }
 
