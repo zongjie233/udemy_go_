@@ -43,6 +43,10 @@ func main() {
 }
 func run() (*driver.DB, error) {
 	gob.Register(models.Reservation{}) // 将数据类型“models.Reservation”注册到gob包中，允许以二进制格式进行编码和解码。
+	gob.Register(models.Room{})
+	gob.Register(models.RoomRestriction{})
+	gob.Register(models.User{})
+	gob.Register(models.Restriction{})
 
 	app.InProduction = false // 在生产模式时请设置为true
 
@@ -78,7 +82,7 @@ func run() (*driver.DB, error) {
 
 	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
-	render.NewTemplates(&app)
+	render.NewRenderer(&app)
 	helpers.NewHelpers(&app)
 	return db, nil
 }

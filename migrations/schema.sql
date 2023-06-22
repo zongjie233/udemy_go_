@@ -31,7 +31,7 @@ CREATE TABLE public.reservations (
     email character varying(255) NOT NULL,
     phone character varying(255) DEFAULT ''::character varying NOT NULL,
     start_date date NOT NULL,
-    end_data date NOT NULL,
+    end_date date NOT NULL,
     room_id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -105,7 +105,7 @@ ALTER SEQUENCE public.restrictions_id_seq OWNED BY public.restrictions.id;
 CREATE TABLE public.room_restrictions (
     id integer NOT NULL,
     start_date date NOT NULL,
-    end_data date NOT NULL,
+    end_date date NOT NULL,
     room_id integer NOT NULL,
     reservation_id integer NOT NULL,
     restriction_id integer NOT NULL,
@@ -306,6 +306,41 @@ ALTER TABLE ONLY public.schema_migration
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: reservations_email_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX reservations_email_idx ON public.reservations USING btree (email);
+
+
+--
+-- Name: reservations_last_name_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX reservations_last_name_idx ON public.reservations USING btree (last_name);
+
+
+--
+-- Name: room_restrictions_reservation_id_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX room_restrictions_reservation_id_idx ON public.room_restrictions USING btree (reservation_id);
+
+
+--
+-- Name: room_restrictions_room_id_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX room_restrictions_room_id_idx ON public.room_restrictions USING btree (room_id);
+
+
+--
+-- Name: room_restrictions_start_date_end_date_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX room_restrictions_start_date_end_date_idx ON public.room_restrictions USING btree (start_date, end_date);
 
 
 --

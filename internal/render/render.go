@@ -20,8 +20,8 @@ var (
 	pathToTemplates = "./templates"
 )
 
-// NewTemplates 为模板设定配置
-func NewTemplates(a *config.AppConfig) {
+// NewRenderer 为模板设定配置
+func NewRenderer(a *config.AppConfig) {
 	app = a
 
 }
@@ -35,8 +35,8 @@ func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 	return td
 }
 
-// RenderTemplate  渲染模板函数
-func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) error {
+// Template  渲染模板函数
+func Template(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) error {
 
 	var tc map[string]*template.Template
 

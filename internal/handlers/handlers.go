@@ -39,14 +39,14 @@ func NewHandlers(r *Repository) {
 
 // Home is the Home page handler
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) { // 必须有着两个参数
-	render.RenderTemplate(w, r, "home.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "home.page.tmpl", &models.TemplateData{})
 
 }
 
 // About is the about page handler
 func (m *Repository) About(w http.ResponseWriter, r *http.Request) { // 必须有着两个参数
 	// 向模板发送数据
-	render.RenderTemplate(w, r, "about.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "about.page.tmpl", &models.TemplateData{})
 }
 
 // Reservation 渲染预定页面，展示表单
@@ -54,7 +54,7 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	var emptyReservation models.Reservation
 	data := make(map[string]interface{})
 	data["reservation"] = emptyReservation
-	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: forms.New(nil), Data: data})
+	render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: forms.New(nil), Data: data})
 }
 
 // PostReservation 处理预定表单的post请求
@@ -85,7 +85,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
-		render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: form, Data: data})
+		render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: form, Data: data})
 		return
 	}
 
@@ -96,17 +96,17 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 // Bigbed 渲染大床房页面，展示表单
 func (m *Repository) Bigbed(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "bigbed.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "bigbed.page.tmpl", &models.TemplateData{})
 }
 
 // Basic 渲染标准间页面，展示表单
 func (m *Repository) Basic(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "basicroom.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "basicroom.page.tmpl", &models.TemplateData{})
 }
 
 // Availability 渲染查找页面，展示表单
 func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "search-availability.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "search-availability.page.tmpl", &models.TemplateData{})
 }
 
 // PostAvailability 渲染查找页面，展示表单
@@ -135,7 +135,7 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 
 // Contact 渲染查找页面，展示表单
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "contact.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "contact.page.tmpl", &models.TemplateData{})
 }
 
 func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +150,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
 
-	render.RenderTemplate(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
+	render.Template(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
 		Data: data,
 	})
 }
