@@ -2,7 +2,7 @@ package models
 
 import "github.com/zongjie233/udemy_lesson/internal/forms"
 
-// TemplateData 保存从处理程序发送至模板的数据
+// TemplateData 模板数据类型
 type TemplateData struct {
 	StringMap map[string]string
 	IntMap    map[string]int

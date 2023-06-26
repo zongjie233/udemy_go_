@@ -2,7 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
+	"github.com/go-chi/chi"
 	"github.com/zongjie233/udemy_lesson/internal/config"
 	"github.com/zongjie233/udemy_lesson/internal/driver"
 	"github.com/zongjie233/udemy_lesson/internal/forms"
@@ -53,10 +54,34 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) { // 必须�
 
 // Reservation 渲染预定页面，展示表单
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	var emptyReservation models.Reservation
+	res, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, errors.New("cannot get reservation from session"))
+		return
+	}
+
+	room, err := m.DB.GetRoomByID(res.RoomID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	res.Room.RoomName = room.RoomName
+
+	sd := res.StartDate.Format("2006-01-02")
+	ed := res.EndDate.Format("2006-01-02")
+
+	stringMap := make(map[string]string)
+	stringMap["start_date"] = sd
+	stringMap["end_date"] = ed
+
 	data := make(map[string]interface{})
-	data["reservation"] = emptyReservation
-	render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: forms.New(nil), Data: data})
+	data["reservation"] = res
+	render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+		Form:      forms.New(nil),
+		Data:      data,
+		StringMap: stringMap,
+	})
 }
 
 // PostReservation 处理预定表单的post请求
@@ -160,10 +185,50 @@ func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
 
 // PostAvailability 渲染查找页面，展示表单
 func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
-	// 获取表单上的数据
+	// 获取表单上的数据,类型都为string，故需要转换为time类型
 	start := r.Form.Get("start")
 	end := r.Form.Get("end")
-	w.Write([]byte(fmt.Sprintf("开始日期是%s,结束日期是%s", start, end)))
+
+	layout := "2006-01-02"
+	startDate, err := time.Parse(layout, start)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := time.Parse(layout, end)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	rooms, err := m.DB.SearchAvailabilityForAllRooms(startDate, endDate)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	// 没有可用房间
+	if len(rooms) == 0 {
+		m.App.Session.Put(r.Context(), "error", "没有可用房间")
+		http.Redirect(w, r, "/search-availability", http.StatusSeeOther)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["rooms"] = rooms
+
+	// 创建预订对象，并将其存储在会话中的"reservation"变量中
+	res := models.Reservation{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+
+	m.App.Session.Put(r.Context(), "reservation", res)
+
+	render.Template(w, r, "choose-room.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+
 }
 
 type jsonResponse struct {
@@ -202,4 +267,28 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	render.Template(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
 		Data: data,
 	})
+}
+
+func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
+
+	// chi API，URLParam返回http.Request对象的URL参数。
+	roomID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	// 从会话中获取名为 "reservation" 的变量，并尝试将其转换为类型 "models.Reservation"
+	res, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	// 将更新后的预订对象存储回会话中的 "reservation" 变量
+	res.RoomID = roomID
+	m.App.Session.Put(r.Context(), "reservation", res)
+
+	// 重定向用户到创建预订页面
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
 }
