@@ -16,12 +16,16 @@
                         <td>{{$res.FirstName}}{{$res.LastName}}</td>
                     </tr>
                     <tr>
+                        <td>房间类型:</td>
+                        <td>{{$res.Room.RoomName}}</td>
+                    </tr>
+                    <tr>
                         <td>到店日期:</td>
-                        <td></td>
+                        <td>{{index .StringMap "start_date"}}</td>
                     </tr>
                     <tr>
                         <td>离店日期:</td>
-                        <td></td>
+                        <td>{{index .StringMap "end_date"}}</td>
                     </tr>
                     <tr>
                         <td>邮箱:</td>
