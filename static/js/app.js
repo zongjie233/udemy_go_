@@ -120,6 +120,7 @@ function Prompt() {
 
 }
 
+// 房型查询按钮的函数
 function checkAvailability(roomID,csrfToken) {
     document.getElementById("check-availability-button").addEventListener("click",
         function () {
