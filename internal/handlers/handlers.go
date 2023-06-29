@@ -228,6 +228,19 @@ type jsonResponse struct {
 // AvailabilityJSON 处理查询请求并发送JSON响应
 func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 
+	// 解析request body, 为了函数测试
+	err := r.ParseForm()
+	if err != nil {
+		resp := jsonResponse{
+			OK:      false,
+			Message: "Internal server error",
+		}
+
+		out, _ := json.MarshalIndent(resp, "", "    ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
+		return
+	}
 	sd := r.Form.Get("start")
 	ed := r.Form.Get("end")
 
@@ -252,7 +265,14 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 
 	available, err := m.DB.SearchAvailabilityByDatesByRoomID(startDate, endDate, roomID)
 	if err != nil {
-		helpers.ServerError(w, err)
+		resp := jsonResponse{
+			OK:      false,
+			Message: "Error connecting to Database",
+		}
+
+		out, _ := json.MarshalIndent(resp, "", "    ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
 		return
 	}
 
@@ -264,11 +284,7 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 		RoomID:    strconv.Itoa(roomID),
 	}
 
-	out, err := json.MarshalIndent(resp, "", "    ")
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
+	out, _ := json.MarshalIndent(resp, "", "    ")
 
 	w.Header().Set("Content-Type", "application/json") // 使客户端能够正确判断和解析服务器返回的数据格式
 	w.Write(out)
