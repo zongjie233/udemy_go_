@@ -2,13 +2,11 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/zongjie233/udemy_lesson/internal/models"
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 )
@@ -22,16 +20,14 @@ var theTests = []struct {
 	name               string
 	url                string
 	method             string
-	params             []postData
 	expectedStatusCode int
 }{
-	//{"home", "/", "GET", []postData{}, http.StatusOK},
-	//{"about", "/about", "GET", []postData{}, http.StatusOK},
-	//{"bigbed", "/bigbed", "GET", []postData{}, http.StatusOK},
-	//{"basic", "/basicroom", "GET", []postData{}, http.StatusOK},
-	//{"search", "/search-availability", "GET", []postData{}, http.StatusOK},
-	//{"contact", "/contact", "GET", []postData{}, http.StatusOK},
-	//{"make", "/make-reservation", "GET", []postData{}, http.StatusOK},
+	{"home", "/", "GET", http.StatusOK},
+	{"about", "/about", "GET", http.StatusOK},
+	{"bigbed", "/bigbed", "GET", http.StatusOK},
+	{"basic", "/basicroom", "GET", http.StatusOK},
+	{"search", "/search-availability", "GET", http.StatusOK},
+	{"contact", "/contact", "GET", http.StatusOK},
 	//{"post-avl", "/search-availability", "POST", []postData{
 	//	{key: "start", value: "2020-01-01"},
 	//	{key: "end", value: "2020-02-01"},
@@ -54,33 +50,19 @@ func TestHandlers(t *testing.T) {
 	defer ts.Close()
 
 	for _, e := range theTests {
-		if e.method == "GET" {
-			resp, err := ts.Client().Get(ts.URL + e.url) // 使用ts.URL获取测试服务器的URL；
-			if err != nil {
-				t.Log(err)
-				t.Fatal(err)
 
-			}
-			if resp.StatusCode != e.expectedStatusCode {
-				t.Errorf("for %s, expected %d, but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
-			}
+		resp, err := ts.Client().Get(ts.URL + e.url) // 使用ts.URL获取测试服务器的URL；
+		if err != nil {
+			t.Log(err)
+			t.Fatal(err)
 
-		} else {
-			values := url.Values{} //url.Values 被用于创建 POST 请求的表单数据
-			for _, x := range e.params {
-				values.Add(x.key, x.value)
-			}
-			resp, err := ts.Client().PostForm(ts.URL+e.url, values) //PostForm() 函数会自动将表单数据进行编码，并将其作为消息体发送到目标 URL 地址
-			if err != nil {
-				t.Log(err)
-				t.Fatal(err)
-
-			}
-			if resp.StatusCode != e.expectedStatusCode {
-				t.Errorf("for %s, expected %d, but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
-			}
 		}
+		if resp.StatusCode != e.expectedStatusCode {
+			t.Errorf("for %s, expected %d, but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
+		}
+
 	}
+
 }
 
 /*
@@ -126,32 +108,182 @@ func TestRepository_Reservation(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Errorf("Reservation handler returned wrong response code: got %d,want %d", rr.Code, http.StatusOK)
 	}
+
+	req, _ = http.NewRequest("GET", "/make-reservation", nil)
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	rr = httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("Reservation handler returned wrong reponse code: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
+	// test with no-existent room
+	req, _ = http.NewRequest("GET", "/make-reservation", nil)
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	rr = httptest.NewRecorder()
+	reservation.RoomID = 100
+	session.Put(ctx, "reservation", reservation)
+
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("Reservation handler returned wrong reponse code: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
 }
 
-func TestRepository_AvailabilityJSON(t *testing.T) {
-	reqBody := "start=2050-01-01"
-	reqBody = fmt.Sprintf("%s&%s", reqBody, "end=2050-01-01")
+func TestRepository_PostReservation(t *testing.T) {
+
+	// 构建reqBody
+	reqBody := "start_date=2050-01-01"
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "end_date=2050-01-02")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "first_name=zdq")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "last_name=sss")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "email=zdq@zdq.com")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "phone=123123123")
 	reqBody = fmt.Sprintf("%s&%s", reqBody, "room_id=1")
 
-	req, _ := http.NewRequest("POST", "search-availability-json", strings.NewReader(reqBody))
-
+	req, _ := http.NewRequest("POST", "/make-reservation", strings.NewReader(reqBody))
 	ctx := getCtx(req)
 	req = req.WithContext(ctx)
 
-	req.Header.Set("Content-Type", "x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	handler := http.HandlerFunc(Repo.AvailabilityJSON)
-
+	//创建一个httptest.NewRecorder()对象，用于捕获PostReservation函数生成的HTTP响应。
 	rr := httptest.NewRecorder()
+
+	//使用http.HandlerFunc将PostReservation函数转换为http.Handler接口的处理程序函数，以便能够使用handler.ServeHTTP处理请求并调用PostReservation函数
+	handler := http.HandlerFunc(Repo.PostReservation)
 
 	handler.ServeHTTP(rr, req)
 
-	var j jsonResponse
-	err := json.Unmarshal([]byte(rr.Body.String()), &j)
-	if err != nil {
-		t.Errorf("failed to parse json")
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("Reservation handler returned wrong response code: got %d, wanted %d", rr.Code, http.StatusSeeOther)
 	}
+
+	// test for missing post body
+	req, _ = http.NewRequest("POST", "/make-reservation", nil)
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	//使用http.HandlerFunc将PostReservation函数转换为http.Handler接口的处理程序函数，以便能够使用handler.ServeHTTP处理请求并调用PostReservation函数
+	handler = http.HandlerFunc(Repo.PostReservation)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("Reservation handler returned wrong response code for missing post body: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
+	// test for invalid start date
+	reqBody = "start_date=invalid date"
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "end_date=2050-01-02")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "first_name=zdq")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "last_name=sss")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "email=zdq@zdq.com")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "phone=123123123")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "room_id=1")
+
+	req, _ = http.NewRequest("POST", "/make-reservation", strings.NewReader(reqBody))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	//使用http.HandlerFunc将PostReservation函数转换为http.Handler接口的处理程序函数，以便能够使用handler.ServeHTTP处理请求并调用PostReservation函数
+	handler = http.HandlerFunc(Repo.PostReservation)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("Reservation handler returned wrong response code for invalid start date: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
+	// test for invalid end date
+	reqBody = "start_date=2050-01-02"
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "end_date=invalid end date")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "first_name=zdq")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "last_name=sss")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "email=zdq@zdq.com")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "phone=123123123")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "room_id=1")
+
+	req, _ = http.NewRequest("POST", "/make-reservation", strings.NewReader(reqBody))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	//使用http.HandlerFunc将PostReservation函数转换为http.Handler接口的处理程序函数，以便能够使用handler.ServeHTTP处理请求并调用PostReservation函数
+	handler = http.HandlerFunc(Repo.PostReservation)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("Reservation handler returned wrong response code for invalid end date: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
+	// test for invalid room id
+	reqBody = "start_date=2050-01-01"
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "end_date=2050-01-02")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "first_name=zdq")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "last_name=sss")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "email=zdq@zdq.com")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "phone=123123123")
+	reqBody = fmt.Sprintf("%s&%s", reqBody, "room_id=invalid")
+
+	req, _ = http.NewRequest("POST", "/make-reservation", strings.NewReader(reqBody))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	//使用http.HandlerFunc将PostReservation函数转换为http.Handler接口的处理程序函数，以便能够使用handler.ServeHTTP处理请求并调用PostReservation函数
+	handler = http.HandlerFunc(Repo.PostReservation)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("Reservation handler returned wrong response code for invalid id: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
 }
+
+//func TestRepository_AvailabilityJSON(t *testing.T) {
+//	reqBody := "start=2050-01-01"
+//	reqBody = fmt.Sprintf("%s&%s", reqBody, "end=2050-01-01")
+//	reqBody = fmt.Sprintf("%s&%s", reqBody, "room_id=1")
+//
+//	req, _ := http.NewRequest("POST", "search-availability-json", strings.NewReader(reqBody))
+//
+//	ctx := getCtx(req)
+//	req = req.WithContext(ctx)
+//
+//	req.Header.Set("Content-Type", "x-www-form-urlencoded")
+//
+//	handler := http.HandlerFunc(Repo.AvailabilityJSON)
+//
+//	rr := httptest.NewRecorder()
+//
+//	handler.ServeHTTP(rr, req)
+//
+//	var j jsonResponse
+//	err := json.Unmarshal([]byte(rr.Body.String()), &j)
+//	if err != nil {
+//		t.Errorf("failed to parse json")
+//	}
+//
+//	// test case where reservation is not in session
+//	req, _ = http.NewRequest("GET", "/make-reservation", nil)
+//	ctx = getCtx(req)
+//	req = req.WithContext(ctx)
+//	rr = httptest.NewRecorder()
+//
+//	handler.ServeHTTP(rr, req)
+//	if rr.Code != http.StatusTemporaryRedirect {
+//		t.Errorf("Reservation handler returned wrong reponse code: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+//	}
+//
+//}
 
 // getCtx 接受一个http.Request作为参数，返回一个context.Context
 func getCtx(req *http.Request) context.Context {

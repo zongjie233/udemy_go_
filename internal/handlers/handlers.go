@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/go-chi/chi"
 	"github.com/zongjie233/udemy_lesson/internal/config"
 	"github.com/zongjie233/udemy_lesson/internal/driver"
@@ -12,7 +11,6 @@ import (
 	"github.com/zongjie233/udemy_lesson/internal/render"
 	"github.com/zongjie233/udemy_lesson/internal/repository"
 	"github.com/zongjie233/udemy_lesson/internal/repository/dbrepo"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -63,13 +61,15 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) { // 必须�
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	res, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		helpers.ServerError(w, errors.New("cannot get reservation from session"))
+		m.App.Session.Put(r.Context(), "error", "cant get reservation from session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	room, err := m.DB.GetRoomByID(res.RoomID)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "cant find room")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -95,23 +95,48 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 
 // PostReservation 处理预定表单的post请求
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
-	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
-	if !ok {
-		helpers.ServerError(w, errors.New("cant get from session"))
-		return
-	}
-
 	err := r.ParseForm()
 	if err != nil {
-		helpers.ServerError(w, err)
-		log.Println(err)
+		m.App.Session.Put(r.Context(), "error", "cant parse form")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
-	reservation.FirstName = r.Form.Get("first_name")
-	reservation.LastName = r.Form.Get("last_name")
-	reservation.Email = r.Form.Get("email")
-	reservation.Phone = r.Form.Get("phone")
+	sd := r.Form.Get("start_date")
+	ed := r.Form.Get("end_date")
+
+	layout := "2006-01-02"
+
+	starDate, err := time.Parse(layout, sd)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "cant parse startdate")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	endDate, err := time.Parse(layout, ed)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "cant parse enddate")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "invalid data")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	reservation := models.Reservation{
+		FirstName: r.Form.Get("first_name"),
+		LastName:  r.Form.Get("last_name"),
+		Phone:     r.Form.Get("phone"),
+		Email:     r.Form.Get("email"),
+		StartDate: starDate,
+		EndDate:   endDate,
+		RoomID:    roomID,
+	}
 
 	//- 使用forms包解析请求表单
 	form := forms.New(r.PostForm)
@@ -124,28 +149,33 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
-		render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{Form: form, Data: data})
+		http.Error(w, "my own error message", http.StatusSeeOther)
+		render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+			Form: form,
+			Data: data,
+		})
 		return
 	}
-
 	// 存入数据库
 	newReservationID, err := m.DB.InsertReservation(reservation)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "cant insert reservation into database ")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	restriction := models.RoomRestriction{
-		StartDate:     reservation.StartDate,
-		EndDate:       reservation.EndDate,
-		RoomID:        reservation.RoomID,
+		StartDate:     starDate,
+		EndDate:       endDate,
+		RoomID:        roomID,
 		ReservationID: newReservationID,
 		RestrictionID: 1,
 	}
 
 	err = m.DB.InsertRoomRestriction(restriction)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "cant insert room restriction")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
