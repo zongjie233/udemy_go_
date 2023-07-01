@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 // User 是用户模型，包含了用户的基本信息和权限级别
 type User struct {
@@ -58,4 +60,12 @@ type RoomRestriction struct {
 	Room          Room
 	Restriction   Restriction
 	Reservation   Reservation
+}
+
+// MailData email 数据结构
+type MailData struct {
+	To      string
+	From    string
+	Subject string
+	Content string
 }

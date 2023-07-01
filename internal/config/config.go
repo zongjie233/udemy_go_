@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/alexedwards/scs/v2"
+	"github.com/zongjie233/udemy_lesson/internal/models"
 	"html/template"
 	"log"
 )
@@ -14,4 +15,5 @@ type AppConfig struct {
 	ErrorLog      *log.Logger
 	InProduction  bool                // 是否为生产模式
 	Session       *scs.SessionManager // 方便handlers函数访问
+	MailChan      chan models.MailData
 }
