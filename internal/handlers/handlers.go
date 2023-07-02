@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/zongjie233/udemy_lesson/internal/config"
 	"github.com/zongjie233/udemy_lesson/internal/driver"
@@ -11,6 +12,7 @@ import (
 	"github.com/zongjie233/udemy_lesson/internal/render"
 	"github.com/zongjie233/udemy_lesson/internal/repository"
 	"github.com/zongjie233/udemy_lesson/internal/repository/dbrepo"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -149,6 +151,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
+
 		http.Error(w, "my own error message", http.StatusSeeOther)
 		render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
 			Form: form,
@@ -178,6 +181,33 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
+
+	// send notifications first- to guest
+	htmlMessage := fmt.Sprintf(`
+		<strong>预定确认 </strong> <br>
+		亲爱的 %s%s:,<br>
+		这是一封酒店确认的信件从%s到%s`, reservation.FirstName, reservation.LastName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+	msg := models.MailData{
+		To:      reservation.Email,
+		From:    "me@here.com",
+		Subject: "reservation confirmation",
+		Content: htmlMessage,
+	}
+
+	m.App.MailChan <- msg
+
+	// send notifications first- to guest
+	htmlMessage = fmt.Sprintf(`
+		<strong>新订单 </strong> <br>
+		有新的预定来自%s%s,%s-%s`, reservation.FirstName, reservation.LastName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+	msg = models.MailData{
+		To:      "me@here.com",
+		From:    "me@here.com",
+		Subject: "您有新订单",
+		Content: htmlMessage,
+	}
+
+	m.App.MailChan <- msg
 
 	m.App.Session.Put(r.Context(), "reservation", reservation) //将一个名为“reservation”的变量存储在应用程序的会话中，以便在请求之间进行访问。
 
@@ -350,6 +380,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	stringMap := make(map[string]string)
 	stringMap["start_date"] = sd
 	stringMap["end_date"] = ed
+	log.Println("reservationsummary中的data", data)
 
 	render.Template(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
 		Data:      data,
