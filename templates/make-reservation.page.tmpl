@@ -13,9 +13,6 @@
                     到店时间：{{index .StringMap "start_date"}}<br>
                     离店时间：{{index .StringMap "end_date"}}<br>
                     </p>
-
-                    {{$res := index .Data "reservation"}}
-
                 <form action="/make-reservation" method="post" class="" novalidate>
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <input type="hidden" name="start_date" value="{{index .StringMap "start_date"}}">

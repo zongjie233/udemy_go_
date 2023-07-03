@@ -448,3 +448,52 @@ func (m *Repository) BookRoom(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
 }
+
+func (m *Repository) ShowLogin(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "login.page.tmpl", &models.TemplateData{
+		Form: forms.New(nil),
+	})
+}
+
+// PostShowLogin 处理用户提交的登录表单
+func (m *Repository) PostShowLogin(w http.ResponseWriter, r *http.Request) {
+	//更新或续期会话令牌
+	_ = m.App.Session.RenewToken(r.Context())
+
+	//解析请求的表单数据
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+	}
+
+	//获取表单中的电子邮件和密码。
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+
+	//创建一个表单验证器，并指定"email"和"password"字段为必填字段
+	form := forms.New(r.PostForm)
+	form.Required("email", "password")
+	if !form.Valid() {
+		render.Template(w, r, "login.page.tmpl", &models.TemplateData{
+			Form: form,
+		})
+		return
+	}
+
+	//使用提供的电子邮件和密码调用m.DB.Authenticate(email, password)进行身份验证
+	id, _, err := m.DB.Authenticate(email, password)
+	if err != nil {
+		log.Println(err)
+		//如果身份验证失败，则将错误消息放入会话中，并将用户重定向到登录页面。
+		m.App.Session.Put(r.Context(), "error", "invalid login credentials")
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "user_id", id)
+	//如果身份验证成功，则将用户ID放入会话中，并设置一个成功闪存消息。
+	m.App.Session.Put(r.Context(), "flash", "login successfully")
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+
+}
