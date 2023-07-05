@@ -35,6 +35,8 @@ func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 	if app.Session.Exists(r.Context(), "user_id") {
 		td.IsAuthenticated = 1
 	}
+	//someone
+
 	return td
 }
 
