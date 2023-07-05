@@ -4,3 +4,4 @@ bookings
 run.sh
 run.bat
 database.yml
+static/
