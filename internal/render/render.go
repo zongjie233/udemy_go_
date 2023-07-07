@@ -10,10 +10,13 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"time"
 )
 
 var (
-	functions = template.FuncMap{}
+	functions = template.FuncMap{
+		"humanDate": HumanDate,
+	}
 	// "undefined app = a" is most likely due to the variable "app" not being defined in the package-level scope.
 	app *config.AppConfig
 	// test setup
@@ -24,6 +27,11 @@ var (
 func NewRenderer(a *config.AppConfig) {
 	app = a
 
+}
+
+// HumanDate 格式化订单时间
+func HumanDate(t time.Time) string {
+	return t.Format("2006-01-02")
 }
 
 // AddDefaultData 添加数据函数
