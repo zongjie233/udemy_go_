@@ -15,6 +15,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -476,6 +477,7 @@ func (m *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
 	render.Template(w, r, "admin-dashboard.page.tmpl", &models.TemplateData{})
 }
 
+// AdminAllReservations 展示所有订单
 func (m *Repository) AdminAllReservations(w http.ResponseWriter, r *http.Request) {
 	reservations, err := m.DB.AllReservations()
 	if err != nil {
@@ -491,10 +493,52 @@ func (m *Repository) AdminAllReservations(w http.ResponseWriter, r *http.Request
 	})
 }
 
+// AdminNewReservations 展示所有新订单
 func (m *Repository) AdminNewReservations(w http.ResponseWriter, r *http.Request) {
-	render.Template(w, r, "admin-new-reservations.page.tmpl", &models.TemplateData{})
+	reservations, err := m.DB.AllNewReservations()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservations"] = reservations
+
+	render.Template(w, r, "admin-new-reservations.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 }
 
+// AdminShowReservation  展示订单
+func (m *Repository) AdminShowReservation(w http.ResponseWriter, r *http.Request) {
+	exploded := strings.Split(r.RequestURI, "/")
+	id, err := strconv.Atoi(exploded[4])
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	src := exploded[3]
+
+	stringsMap := make(map[string]string)
+	stringsMap["src"] = src
+
+	res, err := m.DB.GetReservationByID(id)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservation"] = res
+
+	render.Template(w, r, "admin-reservations-show.page.tmpl", &models.TemplateData{
+		StringMap: stringsMap,
+		Data:      data,
+	})
+}
+
+// AdminReservationsCalendar 展示订单日期
 func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Request) {
 	render.Template(w, r, "admin-reservations-calendar.page.tmpl", &models.TemplateData{})
 }
