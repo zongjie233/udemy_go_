@@ -83,12 +83,6 @@ function Prompt() {
                     c.willOpen();
                 }
             },
-            preConfirm: () => {
-                return [
-                    document.getElementById('start').value,
-                    document.getElementById('end').value
-                ]
-            },
             // 打开之后，通过移除disabled属性实现第一时间不打开日历，当用户点击时打开
             didOpen:() => {
                 if (c.didOpen !== undefined){

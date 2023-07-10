@@ -5,7 +5,102 @@ reservations show
 {{end}}
 
 {{define "content"}}
+    {{$res := index .Data "reservation"}}
+    {{$src := index .StringMap "src"}}
     <div class="col-md-12">
-        reservation calendar content
+        <p>
+            <strong>到店时间：</strong> {{humanDate $res.StartDate}}<br>
+            <strong>离店时间：</strong> {{humanDate $res.EndDate}}<br>
+            <strong>房间：</strong> {{$res.Room.RoomName}}<br>
+        </p>
+        <form action="/admin/reservations/{{$src}}/{{$res.ID}}" method="post" class="" novalidate>
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <div class="form-group mt-5">
+                <label for="first_name">姓：</label>
+                {{/*            - 使用with语法,检查.Form.Errors中是否存在key为"First_name"的错误 - 如果存在,with块中的内容将被渲染*/}}
+                {{with .Form.Errors.Get "first_name"}}
+                    <label class="text-danger">{{.}}</label>
+                {{end}}
+
+
+                <input type="text" name="first_name" value="{{$res.FirstName}}"
+                       class="form-control {{with .Form.Errors.Get "first_name"}} is-invalid {{end}}"
+                       id="first_name" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="last_name">名：</label>
+                {{with .Form.Errors.Get "last_name"}}
+                    <label class="text-danger">{{.}}</label>
+                {{end}}
+                <input type="text" value="{{$res.LastName}}" name="last_name" id="last_name" class="form-control {{with .Form.Errors.Get "last_name"}} is-invalid {{end}} " required autocomplete="off">
+            </div>
+
+
+            <div class="form-group">
+                <label for="email">邮箱：</label>
+                {{with .Form.Errors.Get "email"}}
+                    <label class="text-danger">{{.}}</label>
+                {{end}}
+                <input type="email"  value="{{$res.Email}}" name="email" id="email" required class="form-control {{with .Form.Errors.Get "email"}} is-invalid {{end}} " autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">手机：</label>
+                {{with .Form.Errors.Get "phone"}}
+                    <label class="text-danger">{{.}}</label>
+                {{end}}
+                <input type="text" name="phone"  value="{{$res.Phone}}" id="phone" required class="form-control {{with .Form.Errors.Get "phone"}} is-invalid {{end}}" autocomplete="off">
+            </div>
+
+
+            <hr>
+
+{{/*                    <input type="submit" class="btn btn-primary "  value="Save">*/}}
+{{/*                     <a href="/admin/reservations-{{$src}}" class="btn btn-warning">Cancel</a>*/}}
+{{/*                    <a href="#!" class="btn btn-info" onclick="processRes({{$res.ID}})" >Mark as Processed</a>*/}}
+
+{{/*                    <a href="#!" class="btn btn-danger"  style="margin-left: px" onclick="processRes({{$res.ID}})" >Delete</a>*/}}
+{{/*使用bootstrap*/}}
+            <div class="d-flex justify-content-between">
+                <div>
+                    <input type="submit" class="btn btn-primary "  value="Save">
+                    <a href="/admin/reservations-{{$src}}" class="btn btn-warning">Cancel</a>
+                    <a href="#!" class="btn btn-info" onclick="processRes({{$res.ID}})" >Mark as Processed</a>
+                </div>
+                <a href="#!" class="btn btn-danger" onclick="deleteRes({{$res.ID}})" >Delete</a>
+            </div>
+
+        </form>
+
     </div>
+{{end}}
+
+{{define "js"}}
+    {{$src := index .StringMap "src"}}
+    <script>
+        function processRes(id){
+            attention.custom({
+                icon:'warning',
+                msg:'你确定吗？',
+                callback:function (result){
+                    if (result!== false){
+                        window.location.href = "/admin/process-reservation/{{$src}}/" + id;
+                    }
+                }
+            })
+        }
+
+        function deleteRes(id){
+            attention.custom({
+                icon:'warning',
+                msg:'你确定吗？',
+                callback:function (result){
+                    if (result!== false){
+                        window.location.href = "/admin/delete-reservation/{{$src}}/" + id;
+                    }
+                }
+            })
+        }
+
+    </script>
 {{end}}
