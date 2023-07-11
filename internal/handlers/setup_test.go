@@ -19,7 +19,12 @@ import (
 	"time"
 )
 
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"humanDate":  render.HumanDate,
+	"formatDate": render.FormatDate,
+	"iterate":    render.Iterate,
+	"add":        render.Add,
+}
 
 var app config.AppConfig
 var session *scs.SessionManager
@@ -27,6 +32,12 @@ var pathToTemplates = "./../../templates"
 
 func TestMain(m *testing.M) {
 	gob.Register(models.Reservation{}) // 注册 models.Reservation 类型，使其能够序列化为 gob 格式
+
+	gob.Register(models.Room{})
+	gob.Register(models.RoomRestriction{})
+	gob.Register(models.User{})
+	gob.Register(models.Restriction{})
+	gob.Register(map[string]int{})
 
 	app.InProduction = false // 在生产模式时请设置为true
 

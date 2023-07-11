@@ -15,7 +15,10 @@ import (
 
 var (
 	functions = template.FuncMap{
-		"humanDate": HumanDate,
+		"humanDate":  HumanDate,
+		"formatDate": FormatDate,
+		"iterate":    Iterate,
+		"add":        Add,
 	}
 	// "undefined app = a" is most likely due to the variable "app" not being defined in the package-level scope.
 	app *config.AppConfig
@@ -32,6 +35,23 @@ func NewRenderer(a *config.AppConfig) {
 // HumanDate 格式化订单时间
 func HumanDate(t time.Time) string {
 	return t.Format("2006-01-02")
+}
+
+func FormatDate(t time.Time, f string) string {
+	return t.Format(f)
+}
+
+// Iterate returns a slice of ints, starting at 1, going to count
+func Iterate(count int) []int {
+	var i int
+	var items []int
+	for i = 0; i < count; i++ {
+		items = append(items, i)
+	}
+	return items
+}
+func Add(a, b int) int {
+	return a + b
 }
 
 // AddDefaultData 添加数据函数
