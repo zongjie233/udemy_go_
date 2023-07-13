@@ -61,7 +61,7 @@ func TestMain(m *testing.M) {
 
 	tc, err := CreateTestTemplateCache()
 	if err != nil {
-		log.Fatal("cannot create template cache")
+		log.Fatal("cannot create template cache!!!!")
 
 	}
 	app.TemplateCache = tc
@@ -101,6 +101,21 @@ func getRoutes() http.Handler {
 	mux.Get("/make-reservation", Repo.Reservation)
 	mux.Post("/make-reservation", Repo.PostReservation)
 	mux.Get("/reservation-summary", Repo.ReservationSummary)
+	mux.Get("/user/login", Repo.ShowLogin)
+	mux.Post("/user/login", Repo.PostShowLogin)
+	mux.Get("/user/logout", Repo.Logout)
+
+	mux.Get("/admin/dashboard", Repo.AdminDashboard)
+
+	mux.Get("/admin/reservations-new", Repo.AdminNewReservations)
+	mux.Get("/admin/reservations-all", Repo.AdminAllReservations)
+	mux.Get("/admin/reservations-calendar", Repo.AdminReservationsCalendar)
+	mux.Post("/admin/reservations-calendar", Repo.AdminPostReservationsCalendar)
+	mux.Get("/admin/process-reservation/{src}/{id}", Repo.AdminProcessReservation)
+	mux.Get("/admin/delete-reservation/{src}/{id}", Repo.AdminDeleteReservation)
+	//
+	mux.Get("/admin/reservations/{src}/{id}/show", Repo.AdminShowReservation)
+	mux.Post("/admin/reservations/{src}/{id}", Repo.AdminPostShowReservation)
 
 	filesServer := http.FileServer(http.Dir("./static/"))             // 建一个文件服务器，用于提供静态文件服务
 	mux.Handle("/static/*", http.StripPrefix("/static", filesServer)) // 注册路由规则，将/static开头的请求映射到 filesServer上
@@ -129,6 +144,7 @@ func SessionLoad(next http.Handler) http.Handler {
 
 // CreateTestTemplateCache 创建模板缓存
 func CreateTestTemplateCache() (map[string]*template.Template, error) {
+
 	myCache := make(map[string]*template.Template)
 
 	// 获取templates中所有*.page.tmpl文件
@@ -139,8 +155,8 @@ func CreateTestTemplateCache() (map[string]*template.Template, error) {
 
 	// 遍历所有page.tmpl文件
 	for _, page := range pages {
-		name := filepath.Base(page)                    // 返回路径中的最后一个元素,即文件名
-		ts, err := template.New(name).ParseFiles(page) // 创建一个模板对象
+		name := filepath.Base(page)                                     // 返回路径中的最后一个元素,即文件名
+		ts, err := template.New(name).Funcs(functions).ParseFiles(page) // 创建一个模板对象
 		if err != nil {
 			return myCache, err
 		}
@@ -159,3 +175,43 @@ func CreateTestTemplateCache() (map[string]*template.Template, error) {
 	}
 	return myCache, nil
 }
+
+//
+//// CreateTestTemplateCache creates a template cache as a map
+//func CreateTestTemplateCache() (map[string]*template.Template, error) {
+//
+//	myCache := map[string]*template.Template{}
+//
+//	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.tmpl", pathToTemplates))
+//	if err != nil {
+//		log.Println(err)
+//		return myCache, err
+//	}
+//
+//	for _, page := range pages {
+//		name := filepath.Base(page)
+//		ts, err := template.New(name).Funcs(functions).ParseFiles(page)
+//		if err != nil {
+//			log.Println(err)
+//			return myCache, err
+//		}
+//
+//		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.tmpl", pathToTemplates))
+//		if err != nil {
+//			log.Println(err)
+//			return myCache, err
+//		}
+//
+//		if len(matches) > 0 {
+//			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.tmpl", pathToTemplates))
+//			if err != nil {
+//				log.Println(err)
+//				return myCache, err
+//			}
+//		}
+//
+//		myCache[name] = ts
+//	}
+//
+//	return myCache, nil
+//}
