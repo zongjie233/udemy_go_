@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-const portNumber = ":8080"
+const portNumber = ":3210"
 
 var app config.AppConfig        // 声明应该在main函数外，这样同为main包下的middleware也能使用声明的配置文件
 var session *scs.SessionManager // 便于管理session

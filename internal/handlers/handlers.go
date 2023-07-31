@@ -50,7 +50,7 @@ func NewHandlers(r *Repository) {
 
 // Home is the Home page handler
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) { // 必须有着两个参数
-	fmt.Println("home  called")
+	//fmt.Println("home  called")
 
 	render.Template(w, r, "home.page.tmpl", &models.TemplateData{})
 
@@ -532,9 +532,15 @@ func (m *Repository) AdminShowReservation(w http.ResponseWriter, r *http.Request
 	}
 
 	src := exploded[3]
+	//fmt.Println(src)
+	stringMap := make(map[string]string)
+	stringMap["src"] = src
 
-	stringsMap := make(map[string]string)
-	stringsMap["src"] = src
+	year := r.URL.Query().Get("y")
+	month := r.URL.Query().Get("m")
+
+	stringMap["month"] = month
+	stringMap["year"] = year
 
 	res, err := m.DB.GetReservationByID(id)
 	if err != nil {
@@ -546,7 +552,7 @@ func (m *Repository) AdminShowReservation(w http.ResponseWriter, r *http.Request
 	data["reservation"] = res
 
 	render.Template(w, r, "admin-reservations-show.page.tmpl", &models.TemplateData{
-		StringMap: stringsMap,
+		StringMap: stringMap,
 		Data:      data,
 		Form:      forms.New(nil),
 	})

@@ -69,7 +69,9 @@ reservations show
                     {{else}}
                         <a href="/admin/reservations-{{$src}}" class="btn btn-warning">Cancel</a>
                     {{end}}
+                    {{if eq $res.Processed 0}}
                     <a href="#!" class="btn btn-info" onclick="processRes({{$res.ID}})" >Mark as Processed</a>
+                    {{end}}
                 </div>
                 <a href="#!" class="btn btn-danger" onclick="deleteRes({{$res.ID}})" >Delete</a>
             </div>
@@ -82,29 +84,32 @@ reservations show
 {{define "js"}}
     {{$src := index .StringMap "src"}}
     <script>
-        function processRes(id){
+        function processRes(id) {
             attention.custom({
-                icon:'warning',
-                msg:'你确定吗？',
-                callback:function (result){
-                    if (result!== false){
-                        window.location.href = "/admin/process-reservation/{{$src}}/" + id;
+                icon: 'warning',
+                msg: '你确定吗?',
+                callback: function (result) {
+                    if (result !== false) {
+                        window.location.href = "/admin/process-reservation/{{$src}}/"
+                            + id
+                            + "/do?y={{index .StringMap "year"}}&m={{index .StringMap "month"}}";
                     }
                 }
             })
         }
 
-        function deleteRes(id){
+        function deleteRes(id) {
             attention.custom({
-                icon:'warning',
-                msg:'你确定吗？',
-                callback:function (result){
-                    if (result!== false){
-                        window.location.href = "/admin/delete-reservation/{{$src}}/" + id;
+                icon: 'warning',
+                msg: '你确定吗?',
+                callback: function (result) {
+                    if (result !== false) {
+                        window.location.href = "/admin/delete-reservation/{{$src}}/"
+                            + id
+                            + "/do?y={{index .StringMap "year"}}&m={{index .StringMap "month"}}";
                     }
                 }
             })
         }
-
     </script>
 {{end}}
